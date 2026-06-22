@@ -264,19 +264,19 @@
 <body>
   <main>
     <section class="hero" aria-labelledby="page-title">
-      <div class="badge">Backlink checker</div>
-      <h1 id="page-title">Simple <span class="gradient-text">Backlink</span> Check</h1>
-      <p class="subhead">Enter your target URL and a list of backlink pages. The checker will scan each page and tell you whether the target link is present.</p>
+      <div class="badge">Backlink maker</div>
+      <h1 id="page-title">Simple <span class="gradient-text">Backlink</span> Maker</h1>
+      <p class="subhead">Enter your target URL and paste 1–20 pages where you want the backlink to be placed. Click the button to generate backlink HTML.</p>
     </section>
 
-    <section class="card" aria-label="Backlink checker form">
+    <section class="card" aria-label="Backlink maker form">
       <form method="post" action="process.php" id="backlink-form">
         <input type="hidden" name="mode" value="create">
         <div class="grid">
           <div>
             <label for="target">
               Target URL
-              <span class="hint">The URL you want found</span>
+              <span class="hint">The URL used in the generated backlinks</span>
             </label>
             <input id="target" name="target" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required>
           </div>

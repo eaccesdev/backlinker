@@ -12,7 +12,7 @@ if ($mode === 'create') {
     $sbc->setTarget($_POST['target'] ?? '');
     $sbc->setUrls(explode("\n", (string)($_POST['urls'] ?? '')));
 
-    $strategy = $_POST['strategy'] ?? 'page_template';
+    $strategy = $_POST['strategy'] ?? 'html_snippet';
     $sbc->setStrategy($strategy);
 
     $anchorText = $_POST['anchorText'] ?? null;
@@ -130,30 +130,39 @@ if ($mode === 'create') {
                 <?php endif; ?>
             <?php endif; ?>
 
-            <table class="w-full">
-                <tr>
-                    <th>Source URL</th>
-                    <th>Generated Content</th>
-                </tr>
+            <?php
+                $lines = [];
+                $i = 0;
+                foreach ($results as $sourceUrl => $generated) {
+                    $i++;
+                    if ($i > $renderLimit) { break; }
+                    $content = isset($generated['content']) ? (string)$generated['content'] : '';
+                    if ($content !== '') {
+                        // When using html_snippet strategy, this should already be a single-line <a ...>...</a>
+                        $lines[] = $content;
+                    }
+                }
+                $outputText = implode("\n", $lines);
+            ?>
 
-                <?php
-                    $i = 0;
-                    foreach ($results as $sourceUrl => $generated) :
-                        $i++;
-                        if ($i > $renderLimit) { break; }
-                ?>
-                    <tr>
-                        <td class="align-top"><?= htmlspecialchars($sourceUrl, ENT_QUOTES, 'UTF-8') ?></td>
-                        <td class="align-top">
-                            <?php if (!empty($generated['content'])) : ?>
-                                <pre class="whitespace-pre-wrap break-words p-3 bg-gray-50 border rounded text-xs"><?= htmlspecialchars($generated['content'], ENT_QUOTES, 'UTF-8') ?></pre>
-                            <?php else : ?>
-                                <span class="text-red-600">No content generated</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
+            <div class="pt-4 pb-2 note text-gray-700">
+                Output (one backlink HTML line per pasted URL):
+            </div>
+
+            <div class="pb-4">
+                <textarea
+                    class="w-full"
+                    name="output"
+                    readonly
+                    style="min-height: 240px; padding: 16px; border-radius: 18px; border: 1px solid rgba(91, 65, 135, 0.20); background: rgba(255,255,255,0.76); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size: 12px;"
+                ><?= htmlspecialchars($outputText, ENT_QUOTES, 'UTF-8') ?></textarea>
+            </div>
+
+            <?php if ($count > $renderLimit) : ?>
+                <div class="pb-4 text-gray-600">
+                    Showing first <?= $renderLimit ?> backlinks of <?= $count ?> total. Download ZIP for the full set.
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
     <?php else : ?>
         <table class="w-full">
