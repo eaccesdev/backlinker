@@ -8,16 +8,17 @@ class SimpleBacklinkCreate
     private $urls = [];
     private $results = [];
     private $anchorText = null;
-    private $strategy = 'page_template';
+    private $strategy = 'html_snippet';
 
     private $rel = 'nofollow';
     private $targetBlank = false;
 
+    // New: Multiple anchor variations for natural look
+    private $anchorVariations = [];
+
     public function setTarget($target)
     {
         $target = trim((string)$target);
-
-        // Validate target as URL
         if ($target !== '' && filter_var($target, FILTER_VALIDATE_URL)) {
             $this->target = $target;
             $this->targetValid = true;
@@ -29,89 +30,31 @@ class SimpleBacklinkCreate
         }
     }
 
-    public function getTarget()
-    {
-        return $this->target;
-    }
-
-    public function getTargetError()
-    {
-        return $this->targetError;
-    }
+    public function getTarget() { return $this->target; }
+    public function getTargetError() { return $this->targetError; }
 
     public function setUrls($urls)
     {
-        // Accept raw string-lines split by caller; also tolerate URL-encoded strings
-        if (!is_array($urls)) {
-            $urls = [$urls];
-        }
-
-        $urls = array_map(function ($url) {
-            $url = trim((string)$url);
-            $url = trim($url, "\r\t\n ");
-            return $url;
-        }, $urls);
-
-        // Remove empty lines
-        $urls = array_filter($urls, function ($url) {
-            return $url !== '';
-        });
-
-        // If a caller accidentally passes a URL-encoded multi-line blob, decode and split
-        $decoded = [];
-        foreach ($urls as $u) {
-            $maybeDecoded = urldecode($u);
-            if (strpos($maybeDecoded, "\n") !== false || strpos($maybeDecoded, "\r") !== false) {
-                $parts = preg_split("/\r\n|\n|\r/", $maybeDecoded);
-                foreach ($parts as $p) {
-                    $p = trim((string)$p);
-                    if ($p !== '') {
-                        $decoded[] = $p;
-                    }
-                }
-            } else {
-                $decoded[] = $maybeDecoded;
-            }
-        }
-
-        $urls = array_filter($decoded, function ($url) {
-            return filter_var($url, FILTER_VALIDATE_URL);
-        });
-
-        $this->urls = array_values($urls);
+        if (!is_array($urls)) $urls = [$urls];
+        $urls = array_map('trim', $urls);
+        $urls = array_filter($urls);
+        $this->urls = array_values(array_filter($urls, fn($u) => filter_var($u, FILTER_VALIDATE_URL)));
     }
 
     public function setAnchorText($anchorText)
     {
-        if ($anchorText === null) {
-            $this->anchorText = null;
-            return;
-        }
-        $anchorText = trim((string)$anchorText);
-        $this->anchorText = $anchorText !== '' ? $anchorText : null;
+        $this->anchorText = $anchorText ? trim($anchorText) : null;
     }
 
     public function setStrategy($strategy)
     {
-        $strategy = trim((string)$strategy);
-        $allowed = ['html_snippet', 'page_template'];
-
-        if (!in_array($strategy, $allowed, true)) {
-            $strategy = 'page_template';
-        }
-
-        $this->strategy = $strategy;
+        $this->strategy = in_array($strategy, ['html_snippet', 'page_template']) ? $strategy : 'html_snippet';
     }
 
     public function setRel($rel)
     {
-        $rel = strtolower(trim((string)$rel));
         $allowed = ['nofollow', 'dofollow', 'sponsored', 'ugc', ''];
-        if (!in_array($rel, $allowed, true)) {
-            $rel = 'nofollow';
-        }
-
-        $this->rel = $rel;
+        $this->rel = in_array($rel, $allowed) ? $rel : 'nofollow';
     }
 
     public function setTargetBlank($targetBlank)
@@ -122,103 +65,72 @@ class SimpleBacklinkCreate
     public function process()
     {
         $this->results = [];
+        if (!$this->targetValid) return;
 
-        if (!$this->targetValid) {
-            // Keep results empty; process.php will decide how to render the error
-            return;
-        }
-
-        $anchor = $this->getAnchorText();
-        $targetEsc = $this->target; // validated; escape later
+        $this->prepareAnchorVariations();
 
         foreach ($this->urls as $sourceUrl) {
-            $content = $this->generateForSourceUrl($sourceUrl, $anchor, $targetEsc);
-
-            $this->results[$sourceUrl] = [
-                'content' => $content
-            ];
+            $content = $this->generateVariedBacklink($sourceUrl);
+            $this->results[$sourceUrl] = ['content' => $content];
         }
     }
 
-    public function getResults()
+    public function getResults() { return $this->results; }
+
+    private function prepareAnchorVariations()
     {
-        return $this->results;
+        $base = $this->anchorText ?: parse_url($this->target, PHP_URL_HOST) ?: 'website';
+        $base = str_replace('www.', '', strtolower($base));
+
+        $this->anchorVariations = [
+            $base,
+            "Visit " . $base,
+            "Learn more at " . $base,
+            $base . " official site",
+            "Best " . $base,
+            "Check out " . $base,
+            "Read more on " . $base,
+            ucfirst($base) . " resources",
+            "Great guide from " . $base,
+            $base . " blog"
+        ];
     }
 
-    private function getAnchorText()
+    private function generateVariedBacklink($sourceUrl)
     {
-        if (is_string($this->anchorText) && $this->anchorText !== '') {
-            return $this->anchorText;
-        }
-
-        $host = parse_url($this->target, PHP_URL_HOST);
-        $host = $host ? strtolower($host) : 'your site';
-
-        // Strip only leading www.
-        if (strpos($host, 'www.') === 0) {
-            $host = substr($host, 4);
-        }
-
-        return $host;
-    }
-
-    private function generateForSourceUrl($sourceUrl, $anchor, $target)
-    {
-        $href = htmlspecialchars($target, ENT_QUOTES, 'UTF-8');
-        $aText = htmlspecialchars($anchor, ENT_QUOTES, 'UTF-8');
+        $href = htmlspecialchars($this->target, ENT_QUOTES, 'UTF-8');
+        $anchor = htmlspecialchars($this->anchorVariations[array_rand($this->anchorVariations)], ENT_QUOTES, 'UTF-8');
 
         $relAttr = '';
         if ($this->rel === 'dofollow') {
-            $relAttr = ''; // omit rel for default dofollow
-        } elseif ($this->rel === '' || $this->rel === 'nofollow') {
-            $relAttr = ' rel="nofollow"';
-        } else {
-            // sponsored / ugc etc.
-            $relAttr = ' rel="' . htmlspecialchars($this->rel, ENT_QUOTES, 'UTF-8') . '"';
+            // do nothing
+        } elseif ($this->rel && $this->rel !== 'dofollow') {
+            $relAttr = ' rel="' . htmlspecialchars($this->rel, ENT_QUOTES) . '"';
         }
 
-        $targetAttr = '';
-        $noopener = ' rel="' . htmlspecialchars(trim($this->rel) ?: 'nofollow', ENT_QUOTES, 'UTF-8') . '"';
-        if ($this->targetBlank) {
-            // If target blank, add noopener/noreferrer; keep rel already handled above where possible
-            $targetAttr = ' target="_blank"';
-            if ($relAttr === '') {
-                // If rel omitted (dofollow), still add noopener/noreferrer without overriding rel semantics
-                $noopener = ' rel="nofollow noopener noreferrer"';
-            } else {
-                $relVal = $this->rel;
-                if ($relVal === 'dofollow') {
-                    $noopener = ' rel="noopener noreferrer"';
-                } else {
-                    // Append noopener/noreferrer to existing rel
-                    $noopener = ' rel="' . $relVal . ' noopener noreferrer"';
-                }
-            }
-        }
+        $targetAttr = $this->targetBlank ? ' target="_blank" rel="noopener noreferrer"' : '';
 
-        if ($this->targetBlank) {
-            $snippet = '<a href="' . $href . '"' . $targetAttr . $noopener . '>' . $aText . '</a>';
-        } else {
-            $snippet = '<a href="' . $href . '"' . $relAttr . '>' . $aText . '</a>';
-        }
+        $snippet = '<a href="' . $href . '"' . $relAttr . $targetAttr . '>' . $anchor . '</a>';
 
+        // Add variety with surrounding text for full pages
         if ($this->strategy === 'html_snippet') {
             return $snippet;
         }
 
-        return '<!doctype html>' .
-            '<html>' .
-            '<head>' .
-            '<meta charset="utf-8">' .
-            '<title>Backlink</title>' .
-            '</head>' .
-            '<body>' .
-            '<p>Example backlink:</p>' .
-            '<p>' . $snippet . '</p>' .
-            '<!-- Source URL (for reference): ' . htmlspecialchars($sourceUrl, ENT_QUOTES, 'UTF-8') . ' -->' .
-            '</body>' .
-            '</html>';
+        // Full page template with more natural context
+        $contexts = [
+            "<p>I recently discovered a great resource at {$snippet}.</p>",
+            "<p>Highly recommend checking {$snippet} for more details.</p>",
+            "<p>Useful guide: {$snippet}</p>",
+            "<p>For the best options, see {$snippet}.</p>"
+        ];
+
+        $context = $contexts[array_rand($contexts)];
+
+        return '<!doctype html><html><head><meta charset="utf-8"><title>Resource</title></head><body>' .
+               '<h1>Useful Links</h1>' . $context .
+               '<!-- Source: ' . htmlspecialchars($sourceUrl) . ' -->' .
+               '</body></html>';
     }
 }
-
 ?>
