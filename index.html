@@ -7,13 +7,13 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(135deg, #f3e8ff, #e0f2fe); min-height: 100vh; }
-    .box { min-height: 520px; resize: vertical; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 13.5px; line-height: 1.5; }
+    .box { min-height: 520px; resize: vertical; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.65; }
   </style>
 </head>
 <body class="p-8">
   <div class="max-w-6xl mx-auto">
     <h1 class="text-4xl font-bold text-center mb-2 text-purple-700">Backlink Creator</h1>
-    <p class="text-center text-gray-600 mb-8">Input opportunity sites → Generate clean backlinks (one per line)</p>
+    <p class="text-center text-gray-600 mb-8">Input sites → Generate clean backlink URLs (one per line)</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- INPUT -->
@@ -21,35 +21,31 @@
         <h2 class="font-semibold text-lg mb-3">📥 Input Opportunity URLs (one per line)</h2>
         <textarea id="inputUrls" class="box w-full p-5 border border-gray-300 rounded-2xl" 
           placeholder="https://100printswith.me&#10;https://4imprint.com&#10;https://accessnewswire.com"></textarea>
-        
-        <div class="mt-6">
-          <label class="block text-sm font-medium mb-2">Your Target Site (where backlinks should point)</label>
-          <input type="url" id="targetUrl" value="https://your-site.com" 
-            class="w-full p-4 border border-gray-300 rounded-2xl text-sm">
-        </div>
 
         <div class="mt-6">
-          <button onclick="generateBacklinks()" 
-            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-5 rounded-2xl text-xl shadow-lg">
-            🚀 Generate Backlinks (One Per Line)
-          </button>
+          <label class="block text-sm font-medium mb-2">Your Target / Base URL</label>
+          <input type="url" id="targetUrl" value="https://your-site.com" 
+            class="w-full p-4 border border-gray-300 rounded-2xl">
         </div>
+
+        <button onclick="generateBacklinks()" 
+          class="mt-8 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-5 rounded-2xl text-xl">
+          🚀 Generate Clean Backlink URLs
+        </button>
       </div>
 
       <!-- OUTPUT -->
       <div class="bg-white rounded-2xl shadow-xl p-6 flex flex-col">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="font-semibold text-lg">📤 Generated Backlinks (One per line)</h2>
-          <span id="counter" class="bg-emerald-100 text-emerald-700 px-5 py-2 rounded-full text-sm font-bold">0 backlinks</span>
+          <h2 class="font-semibold text-lg">📤 Generated Backlink URLs</h2>
+          <span id="counter" class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-sm font-bold">0 links</span>
         </div>
         
         <textarea id="output" class="box flex-1 w-full p-5 border border-gray-300 rounded-2xl bg-gray-50" readonly></textarea>
         
         <div class="flex gap-4 mt-6">
-          <button onclick="copyOutput()" 
-            class="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-semibold text-lg">Copy All Lines</button>
-          <button onclick="clearOutput()" 
-            class="flex-1 bg-gray-200 py-4 rounded-2xl font-semibold text-lg">Clear</button>
+          <button onclick="copyOutput()" class="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-semibold">Copy All Lines</button>
+          <button onclick="clearOutput()" class="flex-1 bg-gray-200 py-4 rounded-2xl font-semibold">Clear</button>
         </div>
       </div>
     </div>
@@ -58,40 +54,45 @@
   <script>
     function generateBacklinks() {
       const inputText = document.getElementById('inputUrls').value.trim();
-      const target = document.getElementById('targetUrl').value.trim() || 'https://your-site.com';
+      let target = document.getElementById('targetUrl').value.trim() || "https://your-site.com";
 
       if (!inputText) {
-        alert("Please paste opportunity URLs first.");
+        alert("Please paste some opportunity URLs.");
         return;
       }
 
-      const urls = inputText.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'));
-      const anchors = ["Learn More", "Visit Site", "Great Resource", "Recommended", "Check Here", "Official Guide", "Best Option", "Read More"];
-
+      const urls = inputText.split('\n').map(u => u.trim()).filter(u => u);
       let outputLines = [];
-      let count = 0;
 
       urls.forEach(url => {
-        const anchor = anchors[Math.floor(Math.random() * anchors.length)];
-        const backlink = `<a href="${target}" target="_blank" rel="nofollow">${anchor}</a> <!-- ${url} -->`;
-        outputLines.push(backlink);
-        count++;
+        // Clean full URL examples like your screenshots
+        const variations = [
+          `${target}?ref=${encodeURIComponent(url)}`,
+          `${target}/?utm_source=${encodeURIComponent(url.replace('https://',''))}`,
+          `${target}/backlink-from-${url.split('//')[1].replace(/\//g, '-')}`,
+          `${target}/search?q=${encodeURIComponent(url)}`,
+          `${target}?from=${encodeURIComponent(url)}`
+        ];
+
+        // Add one random clean variation per input line
+        const link = variations[Math.floor(Math.random() * variations.length)];
+        outputLines.push(link);
       });
 
       document.getElementById('output').value = outputLines.join('\n');
-      document.getElementById('counter').textContent = `${count} backlinks`;
+      document.getElementById('counter').textContent = `${outputLines.length} backlinks`;
     }
 
     function copyOutput() {
-      const output = document.getElementById('output');
-      output.select();
+      const ta = document.getElementById('output');
+      ta.select();
       document.execCommand('copy');
-      alert("✅ All backlinks copied!");
+      alert("✅ Copied to clipboard!");
     }
 
     function clearOutput() {
       document.getElementById('output').value = '';
-      document.getElementById('counter').textContent = '0 backlinks';
+      document.getElementById('counter').textContent = '0 links';
     }
   </script>
 </body>
