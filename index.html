@@ -271,6 +271,7 @@
 
     <section class="card" aria-label="Backlink checker form">
       <form method="post" action="process.php" id="backlink-form">
+        <input type="hidden" name="mode" value="create">
         <div class="grid">
           <div>
             <label for="target">
@@ -282,16 +283,16 @@
 
           <div>
             <label for="urls">
-              Backlink URLs
-              <span class="hint">One URL per line</span>
+              Backlink Sites / Pages
+              <span class="hint">One URL per line (where you’ll place backlinks)</span>
             </label>
             <textarea id="urls" name="urls" placeholder="https://site-one.com/page&#10;https://site-two.com/article&#10;https://site-three.com/resources" required></textarea>
           </div>
         </div>
 
         <div class="actions">
-          <button type="submit">Check backlinks</button>
-          <div class="note">Works with the existing <strong>process.php</strong> backend on PHP hosting.</div>
+          <button type="submit">Create Backlinks</button>
+          <div class="note">Generates backlink HTML for each page you paste, using the existing <strong>process.php</strong> backend.</div>
         </div>
       </form>
 
