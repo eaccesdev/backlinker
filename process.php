@@ -131,8 +131,9 @@ if ($mode === 'create') {
             <?php endif; ?>
 
             <?php
-                $lines = [];
+            $lines = [];
                 $i = 0;
+                $firstLine = '';
                 foreach ($results as $sourceUrl => $generated) {
                     $i++;
                     if ($i > $renderLimit) { break; }
@@ -140,10 +141,26 @@ if ($mode === 'create') {
                     if ($content !== '') {
                         // When using html_snippet strategy, this should already be a single-line <a ...>...</a>
                         $lines[] = $content;
+                        if ($firstLine === '') {
+                            $firstLine = $content;
+                        }
                     }
                 }
                 $outputText = implode("\n", $lines);
             ?>
+
+            <div class="pt-4 pb-2 note text-gray-700">
+                Created <?= (int)$count ?> backlinks.
+            </div>
+
+            <?php if ($count > 0) : ?>
+                <div class="pb-2 text-gray-700 text-sm">
+                    First generated line (raw):
+                    <div class="p-3 bg-gray-50 border rounded mt-2" style="white-space:pre-wrap; word-break:break-word;">
+                        <?= $firstLine ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <div class="pt-4 pb-2 note text-gray-700">
                 Output (one backlink HTML line per pasted URL):
