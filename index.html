@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple Backlink Check</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f3ff;
+      --bg-2: #eef7ff;
+      --card: rgba(255, 255, 255, 0.82);
+      --text: #171426;
+      --muted: #6f6a80;
+      --line: rgba(91, 65, 135, 0.16);
+      --primary: #7c3aed;
+      --primary-2: #ec4899;
+      --primary-dark: #5b21b6;
+      --shadow: 0 24px 80px rgba(65, 45, 100, 0.16);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(236, 72, 153, 0.20), transparent 30rem),
+        radial-gradient(circle at top right, rgba(124, 58, 237, 0.22), transparent 34rem),
+        linear-gradient(135deg, var(--bg), var(--bg-2));
+    }
+
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 64px 0 32px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--primary-dark);
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.10);
+    }
+
+    h1 {
+      margin: 22px 0 12px;
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subhead {
+      max-width: 680px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+    }
+
+    form {
+      padding: clamp(24px, 4vw, 44px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+      color: #2b2440;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(91, 65, 135, 0.20);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    input {
+      height: 58px;
+      padding: 0 18px;
+    }
+
+    textarea {
+      min-height: 240px;
+      padding: 18px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(124, 58, 237, 0.72);
+      box-shadow: 0 0 0 5px rgba(124, 58, 237, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      padding: 15px 24px;
+      box-shadow: 0 16px 35px rgba(124, 58, 237, 0.28);
+      transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 20px 45px rgba(124, 58, 237, 0.34);
+      filter: saturate(1.08);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 0 clamp(24px, 4vw, 44px) clamp(24px, 4vw, 44px);
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.52);
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    footer {
+      padding: 22px 0 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--primary-dark);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    @media (max-width: 680px) {
+      main {
+        padding-top: 34px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="badge">Backlink checker</div>
+      <h1 id="page-title">Simple <span class="gradient-text">Backlink</span> Check</h1>
+      <p class="subhead">Enter your target URL and a list of backlink pages. The checker will scan each page and tell you whether the target link is present.</p>
+    </section>
+
+    <section class="card" aria-label="Backlink checker form">
+      <form method="post" action="process.php" id="backlink-form">
+        <div class="grid">
+          <div>
+            <label for="target">
+              Target URL
+              <span class="hint">The URL you want found</span>
+            </label>
+            <input id="target" name="target" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required>
+          </div>
+
+          <div>
+            <label for="urls">
+              Backlink URLs
+              <span class="hint">One URL per line</span>
+            </label>
+            <textarea id="urls" name="urls" placeholder="https://site-one.com/page&#10;https://site-two.com/article&#10;https://site-three.com/resources" required></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Check backlinks</button>
+          <div class="note">Works with the existing <strong>process.php</strong> backend on PHP hosting.</div>
+        </div>
+      </form>
+
+      <div class="stats" aria-label="Feature summary">
+        <div class="stat">
+          <strong>01</strong>
+          <span>Paste your target</span>
+        </div>
+        <div class="stat">
+          <strong>02</strong>
+          <span>Add backlink pages</span>
+        </div>
+        <div class="stat">
+          <strong>03</strong>
+          <span>Review results</span>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Simple Backlink Check. Built for clean, quick backlink verification.
+    </footer>
+  </main>
+
+  <script>
+    const form = document.querySelector('#backlink-form');
+    const urls = document.querySelector('#urls');
+
+    form.addEventListener('submit', event => {
+      const lines = urls.value
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      if (!lines.length) {
+        event.preventDefault();
+        urls.focus();
+        alert('Add at least one backlink URL.');
+        return;
+      }
+
+      urls.value = lines.join('\n');
+    });
+  </script>
+</body>
+</html>
