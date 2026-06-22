@@ -7,91 +7,107 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(135deg, #f3e8ff, #e0f2fe); min-height: 100vh; }
-    .box { height: 420px; resize: vertical; overflow-y: auto; }
+    .box { min-height: 420px; resize: vertical; overflow-y: auto; }
   </style>
 </head>
 <body class="p-8">
   <div class="max-w-6xl mx-auto">
     <h1 class="text-4xl font-bold text-center mb-2 text-purple-700">Backlink Creator</h1>
-    <p class="text-center text-gray-600 mb-8">Load URLs → Generate Backlinks → Copy Output</p>
+    <p class="text-center text-gray-600 mb-8">Load URLs → Generate Unique Backlinks (Hundreds/Thousands)</p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- INPUT BOX -->
+      <!-- INPUT -->
       <div class="bg-white rounded-2xl shadow-xl p-6">
-        <h2 class="font-semibold text-lg mb-3 flex items-center gap-2">
-          📥 Input URLs (one per line)
-        </h2>
+        <h2 class="font-semibold text-lg mb-3">📥 Input Opportunity URLs (one per line)</h2>
         <textarea id="inputUrls" class="box w-full p-4 border border-gray-300 rounded-xl font-mono text-sm" 
-          placeholder="https://opportunity-site.com/page1&#10;https://forum.com/thread/123&#10;https://blog.com/post"></textarea>
+          placeholder="https://site1.com/page&#10;https://forum.com/thread"></textarea>
         
-        <div class="mt-4">
-          <button onclick="generateBacklinks()" 
-            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-xl text-lg hover:brightness-110 transition">
-            🚀 Create Backlinks
-          </button>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Backlinks per URL (max unique)</label>
+            <input type="number" id="multiplier" value="100" min="1" max="1000" 
+              class="w-full p-3 border border-gray-300 rounded-xl text-center font-mono">
+          </div>
+          <div class="self-end">
+            <button onclick="generateMassBacklinks()" 
+              class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-xl text-lg hover:brightness-110">
+              🚀 Generate Unique Backlinks
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- OUTPUT BOX -->
+      <!-- OUTPUT -->
       <div class="bg-white rounded-2xl shadow-xl p-6 flex flex-col">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-semibold text-lg">📤 Generated Backlinks</h2>
-          <span id="counter" class="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold">0 links</span>
+          <span id="counter" class="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold">0 unique links</span>
         </div>
         
         <textarea id="output" class="box flex-1 w-full p-4 border border-gray-300 rounded-xl font-mono text-sm bg-gray-50" readonly></textarea>
         
         <div class="flex gap-3 mt-4">
-          <button onclick="copyOutput()" 
-            class="flex-1 bg-gray-800 text-white py-3 rounded-xl font-semibold hover:bg-black">Copy Output</button>
-          <button onclick="clearOutput()" 
-            class="flex-1 bg-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-300">Clear</button>
+          <button onclick="copyOutput()" class="flex-1 bg-gray-800 text-white py-3 rounded-xl font-semibold">Copy All</button>
+          <button onclick="clearAll()" class="flex-1 bg-gray-200 py-3 rounded-xl font-semibold">Clear</button>
         </div>
       </div>
-    </div>
-
-    <div class="mt-8 text-center text-sm text-gray-500">
-      Works with your existing <code class="bg-gray-100 px-1 rounded">process.php</code> backend
     </div>
   </div>
 
   <script>
-    function generateBacklinks() {
-      const input = document.getElementById('inputUrls').value.trim();
-      if (!input) {
-        alert("Please enter at least one URL");
+    function generateMassBacklinks() {
+      const inputText = document.getElementById('inputUrls').value.trim();
+      let multiplier = parseInt(document.getElementById('multiplier').value) || 100;
+
+      if (!inputText) {
+        alert("Please enter some URLs first.");
         return;
       }
 
-      const urls = input.split('\n').map(u => u.trim()).filter(u => u);
-      let output = '';
-      let count = 0;
+      const urls = inputText.split('\n').map(u => u.trim()).filter(Boolean);
+      const uniqueBacklinks = new Set();   // Deduplication
+      let totalGenerated = 0;
 
-      urls.forEach(url => {
-        // Create varied backlink HTML using your backend style
-        const anchors = ["Visit Site", "Learn More", "Great Resource", "Recommended", "Check Here", "Official Guide"];
-        const anchor = anchors[Math.floor(Math.random() * anchors.length)];
-        
-        const link = `<a href="https://your-target-url.com" target="_blank" rel="nofollow">${anchor}</a>`;
-        output += `${link}  <!-- ${url} -->\n`;
-        count++;
+      const baseAnchors = [
+        "Great Resource", "Learn More", "Official Guide", "Recommended",
+        "Best Option", "Check This Out", "Useful Link", "Must Read",
+        "Visit Here", "Excellent Site", "Top Resource", "See Details",
+        "Highly Recommended", "Worth Checking", "Informative Read"
+      ];
+
+      urls.forEach(baseUrl => {
+        let attempts = 0;
+        const maxAttempts = multiplier * 3; // safety limit
+
+        while (uniqueBacklinks.size < totalGenerated + multiplier && attempts < maxAttempts) {
+          attempts++;
+          const anchor = baseAnchors[Math.floor(Math.random() * baseAnchors.length)];
+          const backlink = `<a href="https://YOUR-TARGET-SITE.com" target="_blank" rel="nofollow">${anchor}</a> <!-- ${baseUrl} -->`;
+
+          if (!uniqueBacklinks.has(backlink)) {
+            uniqueBacklinks.add(backlink);
+            totalGenerated++;
+          }
+        }
       });
 
-      document.getElementById('output').value = output;
-      document.getElementById('counter').textContent = `${count} links generated`;
+      // Build final output
+      const outputArray = Array.from(uniqueBacklinks);
+      document.getElementById('output').value = outputArray.join('\n');
+      document.getElementById('counter').textContent = `${outputArray.length.toLocaleString()} unique links`;
     }
 
     function copyOutput() {
-      const output = document.getElementById('output');
-      output.select();
+      const ta = document.getElementById('output');
+      ta.select();
       document.execCommand('copy');
-      alert("✅ Copied to clipboard!");
+      alert('✅ Copied to clipboard!');
     }
 
-    function clearOutput() {
-      if (confirm("Clear output?")) {
+    function clearAll() {
+      if (confirm('Clear everything?')) {
         document.getElementById('output').value = '';
-        document.getElementById('counter').textContent = '0 links';
+        document.getElementById('counter').textContent = '0 unique links';
       }
     }
   </script>
