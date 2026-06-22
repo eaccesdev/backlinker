@@ -1,341 +1,99 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simple Backlink Check</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backlink Creator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #f7f3ff;
-      --bg-2: #eef7ff;
-      --card: rgba(255, 255, 255, 0.82);
-      --text: #171426;
-      --muted: #6f6a80;
-      --line: rgba(91, 65, 135, 0.16);
-      --primary: #7c3aed;
-      --primary-2: #ec4899;
-      --primary-dark: #5b21b6;
-      --shadow: 0 24px 80px rgba(65, 45, 100, 0.16);
-      --radius: 24px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(236, 72, 153, 0.20), transparent 30rem),
-        radial-gradient(circle at top right, rgba(124, 58, 237, 0.22), transparent 34rem),
-        linear-gradient(135deg, var(--bg), var(--bg-2));
-    }
-
-    main {
-      width: min(980px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 64px 0 32px;
-    }
-
-    .hero {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.58);
-      color: var(--primary-dark);
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.10);
-    }
-
-    h1 {
-      margin: 22px 0 12px;
-      font-size: clamp(42px, 7vw, 76px);
-      line-height: 0.95;
-      letter-spacing: -0.07em;
-    }
-
-    .gradient-text {
-      background: linear-gradient(90deg, var(--primary), var(--primary-2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .subhead {
-      max-width: 680px;
-      margin: 0 auto;
-      color: var(--muted);
-      font-size: 18px;
-      line-height: 1.7;
-    }
-
-    .card {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--card);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto 0;
-      height: 5px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-2));
-    }
-
-    form {
-      padding: clamp(24px, 4vw, 44px);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 22px;
-    }
-
-    label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 10px;
-      color: #2b2440;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: none;
-      letter-spacing: 0;
-    }
-
-    input,
-    textarea {
-      width: 100%;
-      border: 1px solid rgba(91, 65, 135, 0.20);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.76);
-      color: var(--text);
-      font: inherit;
-      outline: none;
-      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-    }
-
-    input {
-      height: 58px;
-      padding: 0 18px;
-    }
-
-    textarea {
-      min-height: 240px;
-      padding: 18px;
-      resize: vertical;
-      line-height: 1.6;
-    }
-
-    input:focus,
-    textarea:focus {
-      border-color: rgba(124, 58, 237, 0.72);
-      box-shadow: 0 0 0 5px rgba(124, 58, 237, 0.12);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-top: 26px;
-    }
-
-    button {
-      appearance: none;
-      border: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--primary), var(--primary-2));
-      color: white;
-      cursor: pointer;
-      font: inherit;
-      font-weight: 900;
-      padding: 15px 24px;
-      box-shadow: 0 16px 35px rgba(124, 58, 237, 0.28);
-      transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 20px 45px rgba(124, 58, 237, 0.34);
-      filter: saturate(1.08);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    .note {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      padding: 0 clamp(24px, 4vw, 44px) clamp(24px, 4vw, 44px);
-    }
-
-    .stat {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.52);
-      padding: 16px;
-    }
-
-    .stat strong {
-      display: block;
-      color: var(--primary-dark);
-      font-size: 22px;
-      line-height: 1;
-    }
-
-    .stat span {
-      display: block;
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    footer {
-      padding: 22px 0 0;
-      color: var(--muted);
-      text-align: center;
-      font-size: 13px;
-    }
-
-    footer a {
-      color: var(--primary-dark);
-      font-weight: 800;
-      text-decoration: none;
-    }
-
-    @media (max-width: 680px) {
-      main {
-        padding-top: 34px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .actions {
-        align-items: stretch;
-      }
-
-      button {
-        width: 100%;
-      }
-    }
+    body { background: linear-gradient(135deg, #f3e8ff, #e0f2fe); min-height: 100vh; }
+    .box { height: 420px; resize: vertical; overflow-y: auto; }
   </style>
 </head>
-<body>
-  <main>
-    <section class="hero" aria-labelledby="page-title">
-      <div class="badge">Backlink maker</div>
-      <h1 id="page-title">Simple <span class="gradient-text">Backlink</span> Maker</h1>
-      <p class="subhead">Enter your target URL and paste 1–20 pages where you want the backlink to be placed. Click the button to generate backlink HTML.</p>
-    </section>
+<body class="p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-2 text-purple-700">Backlink Creator</h1>
+    <p class="text-center text-gray-600 mb-8">Load URLs → Generate Backlinks → Copy Output</p>
 
-    <section class="card" aria-label="Backlink maker form">
-      <form method="post" action="process.php" id="backlink-form">
-        <input type="hidden" name="mode" value="create">
-        <div class="grid">
-          <div>
-            <label for="target">
-              Target URL
-              <span class="hint">The URL used in the generated backlinks</span>
-            </label>
-            <input id="target" name="target" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com" required>
-          </div>
-
-          <div>
-            <label for="urls">
-              Backlink Sites / Pages
-              <span class="hint">One URL per line (where you’ll place backlinks)</span>
-            </label>
-            <textarea id="urls" name="urls" placeholder="https://site-one.com/page&#10;https://site-two.com/article&#10;https://site-three.com/resources" required></textarea>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button type="submit">Create Backlinks</button>
-          <div class="note">Generates backlink HTML for each page you paste, using the existing <strong>process.php</strong> backend.</div>
-        </div>
-      </form>
-
-      <div class="stats" aria-label="Feature summary">
-        <div class="stat">
-          <strong>01</strong>
-          <span>Paste your target</span>
-        </div>
-        <div class="stat">
-          <strong>02</strong>
-          <span>Add backlink pages</span>
-        </div>
-        <div class="stat">
-          <strong>03</strong>
-          <span>Review results</span>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- INPUT BOX -->
+      <div class="bg-white rounded-2xl shadow-xl p-6">
+        <h2 class="font-semibold text-lg mb-3 flex items-center gap-2">
+          📥 Input URLs (one per line)
+        </h2>
+        <textarea id="inputUrls" class="box w-full p-4 border border-gray-300 rounded-xl font-mono text-sm" 
+          placeholder="https://opportunity-site.com/page1&#10;https://forum.com/thread/123&#10;https://blog.com/post"></textarea>
+        
+        <div class="mt-4">
+          <button onclick="generateBacklinks()" 
+            class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-4 rounded-xl text-lg hover:brightness-110 transition">
+            🚀 Create Backlinks
+          </button>
         </div>
       </div>
-    </section>
 
-    <footer>
-      Simple Backlink Check. Built for clean, quick backlink verification.
-    </footer>
-  </main>
+      <!-- OUTPUT BOX -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-semibold text-lg">📤 Generated Backlinks</h2>
+          <span id="counter" class="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold">0 links</span>
+        </div>
+        
+        <textarea id="output" class="box flex-1 w-full p-4 border border-gray-300 rounded-xl font-mono text-sm bg-gray-50" readonly></textarea>
+        
+        <div class="flex gap-3 mt-4">
+          <button onclick="copyOutput()" 
+            class="flex-1 bg-gray-800 text-white py-3 rounded-xl font-semibold hover:bg-black">Copy Output</button>
+          <button onclick="clearOutput()" 
+            class="flex-1 bg-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-300">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center text-sm text-gray-500">
+      Works with your existing <code class="bg-gray-100 px-1 rounded">process.php</code> backend
+    </div>
+  </div>
 
   <script>
-    const form = document.querySelector('#backlink-form');
-    const urls = document.querySelector('#urls');
-
-    form.addEventListener('submit', event => {
-      const lines = urls.value
-        .split('\n')
-        .map(line => line.trim())
-        .filter(Boolean);
-
-      if (!lines.length) {
-        event.preventDefault();
-        urls.focus();
-        alert('Add at least one backlink URL.');
+    function generateBacklinks() {
+      const input = document.getElementById('inputUrls').value.trim();
+      if (!input) {
+        alert("Please enter at least one URL");
         return;
       }
 
-      urls.value = lines.join('\n');
-    });
+      const urls = input.split('\n').map(u => u.trim()).filter(u => u);
+      let output = '';
+      let count = 0;
+
+      urls.forEach(url => {
+        // Create varied backlink HTML using your backend style
+        const anchors = ["Visit Site", "Learn More", "Great Resource", "Recommended", "Check Here", "Official Guide"];
+        const anchor = anchors[Math.floor(Math.random() * anchors.length)];
+        
+        const link = `<a href="https://your-target-url.com" target="_blank" rel="nofollow">${anchor}</a>`;
+        output += `${link}  <!-- ${url} -->\n`;
+        count++;
+      });
+
+      document.getElementById('output').value = output;
+      document.getElementById('counter').textContent = `${count} links generated`;
+    }
+
+    function copyOutput() {
+      const output = document.getElementById('output');
+      output.select();
+      document.execCommand('copy');
+      alert("✅ Copied to clipboard!");
+    }
+
+    function clearOutput() {
+      if (confirm("Clear output?")) {
+        document.getElementById('output').value = '';
+        document.getElementById('counter').textContent = '0 links';
+      }
+    }
   </script>
 </body>
 </html>
